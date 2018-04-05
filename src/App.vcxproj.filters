@@ -31,6 +31,18 @@
     <ClCompile Include="imgui\imgui_draw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="AppGui.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Settings.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ini.c">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyfiledialogs.c">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui_impl_glfw_gl3.h">
@@ -50,6 +62,18 @@
     </ClInclude>
     <ClInclude Include="imgui\imgui_internal.h">
       <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="AppGui.hpp">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Settings.hpp">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="ini.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyfiledialogs.h">
+      <Filter>sources</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
