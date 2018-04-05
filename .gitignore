@@ -1,0 +1,28 @@
+*.pdb
+*.ipch
+*.sdf
+*.suo
+*.user
+*.aps
+*.opensdf
+*.depend
+*.vsp
+*.exe
+*.lib
+*.exp
+*.db
+*.opendb
+*.nupkg
+*.log
+*bin
+*Debug
+*Release
+*Release Static
+*Debug Static
+*Packages
+*Win32
+*Win64
+*.tlog
+*.vs
+*.stackdump
+*.pyc
