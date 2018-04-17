@@ -43,6 +43,12 @@
     <ClCompile Include="tinyfiledialogs.c">
       <Filter>sources</Filter>
     </ClCompile>
+    <ClCompile Include="TestCube.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui_impl_glfw_gl3.h">
@@ -75,5 +81,19 @@
     <ClInclude Include="tinyfiledialogs.h">
       <Filter>sources</Filter>
     </ClInclude>
+    <ClInclude Include="TestCube.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Cube_Frag.glsl">
+      <Filter>sources</Filter>
+    </None>
+    <None Include="Cube_Vert.glsl">
+      <Filter>sources</Filter>
+    </None>
   </ItemGroup>
 </Project>

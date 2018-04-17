@@ -1,0 +1,217 @@
+#include "TestCube.h"
+
+#define PI 3.14159265
+
+
+TestCube::TestCube ()
+{
+}
+
+
+TestCube::~TestCube ()
+{
+}
+
+struct VertexFormat
+{
+
+  glm::vec3 position;
+  glm::vec4 color;
+  glm::vec2 texture;
+
+  VertexFormat (const glm::vec3 &iPos, const glm::vec4 &iColor)
+  {
+    position = iPos;
+    color = iColor;
+    texture.x = texture.y = 0;
+  }
+  VertexFormat (const glm::vec3 &iPos, const glm::vec2 &iTexture)
+  {
+    position = iPos;
+    texture = iTexture;
+    color.r = color.g = color.b = color.a = 0;
+  }
+
+  VertexFormat ()
+  {
+
+  }
+
+};
+
+std::string TestCube::ReadShader (const std::string& filename)
+{
+
+  std::string shaderCode;
+  std::ifstream file (filename, std::ios::in);
+
+  if (!file.good ()) {
+    std::cout << "Can't read file " << filename.c_str () << std::endl;
+    std::terminate ();
+  }
+
+  file.seekg (0, std::ios::end);
+  shaderCode.resize ((unsigned int) file.tellg ());
+  file.seekg (0, std::ios::beg);
+  file.read (&shaderCode[0], shaderCode.size ());
+  file.close ();
+
+  return shaderCode;
+}
+
+GLuint TestCube::CreateShader (GLenum shaderType, const std::string& source, const std::string& shaderName)
+{
+
+  int compile_result = 0;
+
+  GLuint shader = glCreateShader (shaderType);
+  const char *shader_code_ptr = source.c_str ();
+  const int   shader_code_size = source.size ();
+
+  glShaderSource (shader, 1, &shader_code_ptr, &shader_code_size);
+  glCompileShader (shader);
+  glGetShaderiv (shader, GL_COMPILE_STATUS, &compile_result);
+
+  //daca exista erori output la consola
+  if (compile_result == GL_FALSE)
+  {
+
+    int info_log_length = 0;
+    glGetShaderiv (shader, GL_INFO_LOG_LENGTH, &info_log_length);
+    std::vector<char> shader_log (info_log_length);
+    glGetShaderInfoLog (shader, info_log_length, NULL, &shader_log[0]);
+    std::cout << "ERROR compiling shader: " << shaderName.c_str () << std::endl << &shader_log[0] << std::endl;
+  }
+
+  return shader;
+
+}
+
+void TestCube::CreateProgram (const std::string& vertexShaderFilename, const std::string& fragmentShaderFilename)
+{
+
+  //read the shader files and save the code
+  std::string vertex_shader_code = ReadShader (vertexShaderFilename);
+  std::string fragment_shader_code = ReadShader (fragmentShaderFilename);
+
+  GLuint vertex_shader = CreateShader (GL_VERTEX_SHADER, vertex_shader_code, "vertex shader");
+  GLuint fragment_shader = CreateShader (GL_FRAGMENT_SHADER, fragment_shader_code, "fragment shader");
+
+  int  link_result = 0;
+  //create the program handle, attatch the shaders and link it
+  GLuint program = glCreateProgram ();
+  glAttachShader (program, vertex_shader);
+  glAttachShader (program, fragment_shader);
+
+  glLinkProgram (program);
+  glGetProgramiv (program, GL_LINK_STATUS, &link_result);
+
+  if (link_result == GL_FALSE)
+  {
+
+    int info_log_length = 0;
+    glGetProgramiv (program, GL_INFO_LOG_LENGTH, &info_log_length);
+    std::vector<char> program_log (info_log_length);
+    glGetProgramInfoLog (program, info_log_length, NULL, &program_log[0]);
+    std::cout << "Shader Loader : LINK ERROR" << std::endl << &program_log[0] << std::endl;
+
+    return;
+  }
+
+  this->program = program;
+}
+
+void TestCube::Create ()
+{
+  GLuint vao;
+  GLuint vbo;
+
+  glGenVertexArrays (1, &vao);
+  glBindVertexArray (vao);
+
+  std::vector<VertexFormat> vertices;
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, 1.0), glm::vec4 (0, 0, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, 1.0), glm::vec4 (1, 0, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, 1.0), glm::vec4 (1, 1, 1, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, 1.0), glm::vec4 (0, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, 1.0), glm::vec4 (1, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, 1.0), glm::vec4 (0, 0, 1, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, 1.0), glm::vec4 (1, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, -1.0), glm::vec4 (1, 1, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, -1.0), glm::vec4 (1, 0, 0, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, 1.0), glm::vec4 (1, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, -1.0), glm::vec4 (1, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, 1.0), glm::vec4 (1, 0, 1, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, -1.0), glm::vec4 (0, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, -1.0), glm::vec4 (1, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, -1.0), glm::vec4 (1, 1, 0, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, -1.0), glm::vec4 (0, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, -1.0), glm::vec4 (1, 1, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, -1.0), glm::vec4 (0, 1, 0, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, -1.0), glm::vec4 (0, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, 1.0), glm::vec4 (0, 0, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, 1.0), glm::vec4 (0, 1, 1, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, -1.0), glm::vec4 (0, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, 1.0), glm::vec4 (0, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, -1.0), glm::vec4 (0, 1, 0, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, 1.0), glm::vec4 (1, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, 1.0), glm::vec4 (0, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, -1.0), glm::vec4 (1, 1, 0, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, 1.0), glm::vec4 (0, 1, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, 1.0, -1.0), glm::vec4 (1, 1, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, 1.0, -1.0), glm::vec4 (0, 1, 0, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, -1.0), glm::vec4 (0, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, -1.0), glm::vec4 (1, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, 1.0), glm::vec4 (0, 0, 1, 1)));
+
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, -1.0), glm::vec4 (1, 0, 0, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (-1.0, -1.0, 1.0), glm::vec4 (0, 0, 1, 1)));
+  vertices.push_back (VertexFormat (glm::vec3 (1.0, -1.0, 1.0), glm::vec4 (1, 0, 1, 1)));
+
+  glGenBuffers (1, &vbo);
+  glBindBuffer (GL_ARRAY_BUFFER, vbo);
+
+  glBufferData (GL_ARRAY_BUFFER, sizeof (VertexFormat) * 36, &vertices[0], GL_STATIC_DRAW);
+  glEnableVertexAttribArray (0);
+  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (VertexFormat), (void*) 0);
+  glEnableVertexAttribArray (1);
+  glVertexAttribPointer (1, 4, GL_FLOAT, GL_FALSE, sizeof (VertexFormat), (void*) (offsetof (VertexFormat, VertexFormat::color)));
+  glBindVertexArray (0);
+  this->vao = vao;
+  this->vbos.push_back (vbo);
+
+  rotation_speed = glm::vec3 (90.0, 90.0, 90.0);
+  rotation = glm::vec3 (0.0, 0.0, 0.0);
+
+}
+
+void TestCube::Update ()
+{
+
+}
+
+void TestCube::Draw (const glm::mat4& projection_matrix, const glm::mat4& view_matrix)
+{
+  glDisable (GL_CULL_FACE);
+
+  rotation = 0.01f * rotation_speed + rotation;
+
+  glm::vec3 rotation_sin = glm::vec3 (rotation.x * PI / 180, rotation.y * PI / 180, rotation.z * PI / 180);
+
+  glUseProgram (program);
+  glUniform3f (glGetUniformLocation (program, "rotation"), rotation_sin.x, rotation_sin.y, rotation_sin.z);
+  glUniformMatrix4fv (glGetUniformLocation (program, "view_matrix"), 1, false, &view_matrix[0][0]);
+  glUniformMatrix4fv (glGetUniformLocation (program, "projection_matrix"), 1, false, &projection_matrix[0][0]);
+  glBindVertexArray (vao);
+  glDrawArrays (GL_TRIANGLES, 0, 36);
+}

@@ -11,9 +11,74 @@
 
 #include "AppGui.hpp"
 
+#include "TestCube.h"
+
+#include "Camera.h"
+
+//Create the Camera
+Camera camera;
+
 static void error_callback(int error, const char* description)
 {
     fprintf(stderr, "Error %d: %s\n", error, description);
+}
+
+
+// Callback function to handle keypresses
+void handleKeypress (GLFWwindow* window, int theKey, int theSancode, int theAction, int theBitField)
+{
+  std::cout << theKey << ", " << theSancode<< ", " << theAction << ", " << theBitField << std::endl;
+
+  switch (theKey) {
+  case 87:
+    camera.Move (FORWARD);
+    break;
+  case 65:
+    camera.Move (LEFT);
+    break;
+  case 83:
+    camera.Move (BACK);
+    break;
+  case 68:
+    camera.Move (RIGHT);
+    break;
+  case 81:
+    camera.Move (DOWN);
+    break;
+  case 69:
+    camera.Move (UP);
+    break;
+  case 'x':
+  case 27:
+    exit (0);
+    return;
+  default:
+    break;
+  }
+
+}
+
+// Callback function to handle mouse movements
+void handleMouseMove (GLFWwindow* window, double theX, double theY)
+{
+  //std::cout << theX << ", " << theY << std::endl;
+  camera.Move2D (theX, theY);
+}
+
+// Callback function to handle mouse keypress
+void handleMouseKeypress (GLFWwindow* window, int theButton, int theAction, int theBitfield)
+{
+  std::cout << theButton << ", " << theAction << ", " << theBitfield << std::endl;
+
+  if (theButton == 0 && theAction == 1)
+  {
+    camera.move_camera = true;
+
+  }
+  else if (theButton == 0 && theAction == 0)
+  {
+    camera.move_camera = false;
+  }
 }
 
 int main(int, char**)
@@ -61,6 +126,28 @@ int main(int, char**)
 
     AppGui gui;
 
+    // Create test cube
+
+    TestCube* cube = new TestCube();
+
+    cube->CreateProgram ("Cube_Vert.glsl", "Cube_Frag.glsl");
+    cube->Create ();
+
+    // Specify the function which should execute when a key is pressed or released
+    glfwSetKeyCallback (window, handleKeypress);
+
+    glfwSetMouseButtonCallback (window, handleMouseKeypress);
+    
+    glfwSetCursorPosCallback (window, handleMouseMove);
+
+    //Setup camera
+    camera.SetMode (FREE);
+    camera.SetPosition (glm::vec3 (0, 0, -1));
+    camera.SetLookAt (glm::vec3 (0, 0, 0));
+    camera.SetClipping (.1, 1000);
+    camera.SetFOV (45);
+
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -96,6 +183,15 @@ int main(int, char**)
         glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glm::mat4 model, view, projection;
+        camera.SetViewport (0, 0, display_w, display_h);
+        camera.Update();
+        camera.GetMatricies (projection, view, model);
+
+        cube->Draw (projection, view);
+
+        //
+
         gui.Draw(display_w, display_h);
 
         ImGui::Render();
@@ -105,6 +201,8 @@ int main(int, char**)
     // Cleanup
     ImGui_ImplGlfwGL3_Shutdown();
     glfwTerminate();
+
+    delete cube;
 
     return 0;
 }
